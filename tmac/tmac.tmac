@@ -22,26 +22,26 @@
 .pl \n(PLu
 .
 .
-.de H1
-.br
-\\s+9\\fB\\$1\\fP\\s-9
-.br
-..
-.
-.de H2
+.de heading@S1
 .br
 \\s+5\\fB\\$1\\fP\\s-5
 .br
 ..
 .
-.de H3
+.de heading@S2
 .br
-\\s+2\\fB\\$1\\fP\\s-2
+\\s+3\\fB\\$1\\fP\\s-3
+.br
+..
+.
+.de heading@S3
+.br
+\\s+1\\fB\\$1\\fP\\s-1
 .br
 ..
 .
 .
-.de HD
+.de header
 .nr PS \\n(.s
 .nr VS \\n(.v
 .ds FT \\n[.fam]
@@ -60,7 +60,7 @@
 'sp |\\n(UFu
 ..
 .
-.de FO
+.de footer
 .nr PS \\n(.s
 .nr VS \\n(.v
 .ds FT \\n[.fam]
@@ -79,79 +79,66 @@
 'bp
 ..
 .
-.wh 0 HD
-.wh -\n(DFu FO
+.wh 0 header
+.wh -\n(DFu footer
 .
 .
-.de PP
+.de paragraph
 .ti +1.25c
 ..
 .
 .
-.de RS
+.de list@start
 .in |2.5c
 ..
 .
-.de RE
+.de list@end
 .in 0
 ..
 .
-.de PI1
+.de list-item@L1
 .br
 \\h'-(\\w'\\$1'u+18p)'\\$1\\h'18p'\\
 ..
 .
 .
-.de PI2
+.de list-item@L2
 .br
 \\h'-(\\w'\\$1'u+18p)'\\$1\\h'18p'\\
 ..
 .
 .
-.de PI3
+.de list-item@L3
 .br
 \\h'-(\\w'\\$1'u+18p)'\\$1\\h'18p'\\
 ..
 .
 .
-.de CO
-.in 0
-.ie \\n(.$=2 \{\
-\\$1\\
-\\h'3p'\\
-\\l'(\\n(.lu-(\\w'\\$1\\$2'u+6p)).'\\
-\\h'3p'\\
-\\$2\}
-.ie \\n(.$=3 \{\
-.	nr IN 15p
-.	while (\\w'\\$1'u)>=(\\n(INu-2p) .nr IN +15p
-.
-\\$1\\
-\\h'\\n(INu-\\w'\\$1'u'\\
-\\$2\\
-\\h'3p'\\
-\\l'(\\n(.lu-(\\w'\\$2\\$3'u+\\n(INu+6p)).'\\
-\\h'3p'\\
-\\$3\}
-..
-.
-.
-.de IM
-.ie \\n(.$=1 .PSPIC \\$1
-.ie \\n(.$=2 \{\
-.	nr NI +1
-.	PSPIC \\$1
+.de image
+.ie \\$1=0 .PSPIC \\$2
+.ie \\$1=1 \{\
+.	PSPIC \\$2
 .	ce 100
-Рисунок \\n(NI: \\$2
+Рисунок \\$3: \\$4
 .	ce 0\}
 ..
 .
-.de TA
-.ie \\n(.$=1 .PSPIC \\$1
-.ie \\n(.$=2 \{\
-.	nr NT +1
+.de table
+.ie \\$1=0 .PSPIC \\$2
+.ie \\$1=1 \{\
 .	rj 100
-Таблица \\n(NT: \\$2
-.	rj 0
-.	PSPIC \\$1
+Таблица \\$3: \\$4
+.	rj 0\}
+.	PSPIC \\$2
+..
+.
+.
+.de font@monospace
+.fam C
+.nf
+..
+.
+.
+.de font@multispace
+.fam T
 ..

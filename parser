@@ -1,10 +1,15 @@
 #!/usr/bin/awk -f
 
 function inline(s) {
+	gsub(/\\/, "\\\\", s)
 	gsub(/<</, "\\(Fo", s)
 	gsub(/>>/, "\\(Fc", s)
 	gsub(/\s---/, "\\h'4p'\\(em", s)
 	gsub(/--/, "\\(em", s)
+	gsub(/''''/, "\\f(BI", s)
+	gsub(/'''/, "\\fI", s)
+	gsub(/''/, "\\fB", s)
+	gsub(/\$\$/, "\\fP", s)
 	s = gensub(/\s*\$\$([^$]+)\$\$\s*/, "\n.EQ\n\\1\n.EN\n", "g", s)
 	sub(/^\n/, "", s)
 	sub(/\n$/, "", s)
@@ -14,44 +19,46 @@ function inline(s) {
 
 /^-\ .+/ {
 	sub(/^-\ /, "")
-	file = file ".H1 \"" $0 "\"\n"
+	file = file ".heading@S1 \"" inline($0) "\"\n"
+	content = content ".CO"
 	next
 }
 
 /^--\ .+/ {
 	sub(/^--\ /, "")
-	file = file ".H2 \"" $0 "\"\n"
+	file = file ".heading@S2 \"" inline($0) "\"\n"
 	next
 }
 
 /^---\ .+/ {
 	sub(/^---\ /, "")
-	file = file ".H3 \"" $0 "\"\n"
+	file = file ".heading@S3 \"" inline($0) "\"\n"
 	next
 }
 
 /^-$/ {
-	file = file ".fam C\n"
+	file = file ".font@monospace\n"
 
 	for (; (getline s) > 0;) {
 		if (match(s, /^-$/))
 			break
 
-		file = file s "\n.br\n"
+		gsub(/\\/, "\\\\", s)
+		file = file s "\n"
 	}
 
-	file = file ".fam T\n"
+	file = file ".font@multispace\n"
 
 	next
 }
 
 /^--$/ {
 	if (isrs) {
-		file = file ".RE\n"
+		file = file ".list@end\n"
 		isrs = 0
 	}
 	else {
-		file = file ".RS\n"
+		file = file ".list@start\n"
 		isrs = 1
 	}
 	next
@@ -75,48 +82,58 @@ function inline(s) {
 
 /^\ {4}/ {
 	sub(/^\ {4}/, "")
-	file = file ".PP\n" inline($0) "\n"
+	file = file ".paragraph\n" inline($0) "\n"
 	next
 }
 
-/^\t{1,3}.+\ .+/ {
-	if (match($0, /^\t{3}.+\ /)) {
-		file = file ".PI3 "
+/^\t{1,3}\S+\ .+/ {
+	if (match($0, /^\t{3}\S+\ /)) {
+		file = file ".list-item@L3 "
 		num = substr($0, 4, RLENGTH - 4)
 	}
-	else if (match($0, /^\t{2}.+\ /)) {
-		file = file ".PI2 "
+	else if (match($0, /^\t{2}\S+\ /)) {
+		file = file ".list-item@L2 "
 		num = substr($0, 3, RLENGTH - 3)
 	}
-	else if (match($0, /^\t.+\ /)) {
-		file = file ".PI1 "
+	else if (match($0, /^\t\S+\ /)) {
+		file = file ".list-item@L1 "
 		num = substr($0, 2, RLENGTH - 2)
 	}
 
-	sub(/^.+\ /, "")
+	sub(/^\t{1,3}\S+\ /, "")
 
 	if (num == "*")
 		num = "\\(bu"
 
-	file = file num "\n" $0 "\n"
+	file = file num "\n" inline($0) "\n"
 	next
 }
 
 /^!P/ {
-	file = file gensub(/^!P(.+)\ (".+")\ .+$/, ".IM \\1 \\2\n", "g")
+	if (match($0, /^!P\S+$/)) {
+		file = file ".image 0 " substr($0, 3) "\n"
+		next
+	}
 
-	match($0, /"\ .+$/)
-	var = substr($0, RSTART + 2, RLENGTH - 2)
+	match($0, /\S+$/)
+	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++picnum
+
+	file = file gensub(/^!P(\S+)\ (.+)\ \S+$/, ".image 1 \\1 " picnum " \"\\2\"\n", "g")
 	next
 }
 
 /^!T/ {
-	file = file gensub(/^!T(.+)\ (".+")\ .+$/, ".TA \\1 \\2\n", "g")
+	if (match($0, /^!T\S+$/)) {
+		file = file ".table 0 " substr($0, 3) "\n"
+		next
+	}
 
-	match($0, /"\ .+$/)
-	var = substr($0, RSTART + 2, RLENGTH - 2)
+	match($0, /\S+$/)
+	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++tblnum
+
+	file = file gensub(/^!T(\S+)\ (.+)\ \S+$/, ".table 1 \\1 " tblnum " \"\\2\"\n", "g")
 	next
 }
 
@@ -139,6 +156,7 @@ function inline(s) {
 	file = file ".in 0\n.ta \\n(.luR\n"
 	file = file "\t(" exprnum ")\n"
 	file = file ".sp |\\n[en]u\n"
+	file = file ".ce 0\n"
 
 	next
 }
