@@ -9,7 +9,7 @@ function inline(s) {
 	gsub(/''''/, "\\f(BI", s)
 	gsub(/'''/, "\\fI", s)
 	gsub(/''/, "\\fB", s)
-	gsub(/\$\$/, "\\fP", s)
+	gsub(/\^\^/, "\\fP", s)
 	s = gensub(/\s*\$\$([^$]+)\$\$\s*/, "\n.EQ\n\\1\n.EN\n", "g", s)
 	sub(/^\n/, "", s)
 	sub(/\n$/, "", s)

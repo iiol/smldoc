@@ -3,10 +3,7 @@
 all: test
 
 test:
-	./smldoc -t tmac/tmac.tmac -i test/test.nn -o test/test.ps
-
-example:
-	./smldoc -t tmac/tmac.tmac -i example/example.nn -o example/example.ps
+	./smldoc -t tmac/tmac.tmac -i test/test.sm -o test/test.ps
 
 clean:
 	rm -f test/test.ps example/example.ps
