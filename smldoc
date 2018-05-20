@@ -10,7 +10,7 @@ while getopts "i:o:t:c" opt; do
 done
 
 if [ -z "$inpfile" -o -z "$outfile" -o -z "$tmac" ]; then
-	echo "Usage: noname [-c] <-t TMAC_FILE> <-i INPUT_FILE> <-o OUTPUT_FILE>"
+	echo "Usage: smldoc [-c] <-t TMAC_FILE> <-i INPUT_FILE> <-o OUTPUT_FILE>"
 	exit 1
 fi
 
