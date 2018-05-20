@@ -16,19 +16,14 @@ fi
 
 dir=$(dirname $0)
 tmpdir=$(mktemp -d /tmp/smldoc.XXX)
-tmpfile=$(mktemp ${tmpdir}/${inpfile##*/}.tmp.XXX)
+coverpage=$(mktemp ${tmpdir}/${inpfile##*/}.cover.XXX)
 tocfile=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
+document=$(mktemp ${tmpdir}/${inpfile##*/}.doc.XXX)
 
 mkdir -p $tmpdir
 touch $outfile
-cat $inpfile | ${dir}/parser >$tmpfile
+cat $inpfile | awk -v covpage=$coverpage -f ${dir}/parser >$document
 echo ".content" >$tocfile
-
-if [ ${content:=0} -eq 0 ]; then
-	cat $tmac $tmpfile | preconv | groff -Tps -e >$outfile 2>/dev/null
-	rm -rf $tmpdir
-	exit
-fi
 
 while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
 	tocfile2=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
@@ -37,9 +32,24 @@ while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
 	echo ".bp" >>$tocfile
 	echo ".content" >$tocfile2
 
-	cat $tmac $tocfile $tmpfile | preconv | groff -Tps -e >$outfile 2>>$tocfile2
+	if [ ${content:=0} -eq 0 ]; then
+		tocfile=
+	fi
+
+	cat $tmac $tocfile $document | preconv | groff -Tps -e 1>$outfile 2>>$tocfile2
+
+	if [ -n "$(grep -v '^\.content' $tocfile2)" ]; then
+		err="$(grep -v '^\.content' $tocfile2)"
+		toc="$(cat $tocfile2)"
+
+		echo "$toc" | grep '^\.content' >$tocfile2
+	fi
 
 	tocfile=$tocfile2
 done
+
+if [ -n "$err" ]; then
+	echo "$err" 1>&2
+fi
 
 rm -rf $tmpdir
