@@ -20,19 +20,21 @@ function inline(s) {
 /^-\ .+/ {
 	sub(/^-\ /, "")
 	file = file ".heading@S1 \"" inline($0) "\"\n"
-	content = content ".CO"
+	file = file ".tm .content@L1 \"" inline($0) "\" \\n%\n"
 	next
 }
 
 /^--\ .+/ {
 	sub(/^--\ /, "")
 	file = file ".heading@S2 \"" inline($0) "\"\n"
+	file = file ".tm .content@L2 \"" inline($0) "\" \\n%\n"
 	next
 }
 
 /^---\ .+/ {
 	sub(/^---\ /, "")
 	file = file ".heading@S3 \"" inline($0) "\"\n"
+	file = file ".tm .content@L3 \"" inline($0) "\" \\n%\n"
 	next
 }
 
