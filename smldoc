@@ -13,11 +13,12 @@ if [ -z "$inpfile" -o -z "$outfile" -o -z "$tmac" ]; then
 	exit 1
 fi
 
+dir=/home/iiol/Documents/projects/smldoc/
 tmpdir=$(mktemp -d /tmp/noname.XXXXXX)
 tmpfile=$(mktemp ${tmpdir}/${inpfile##*/}.XXX)
 
 mkdir -p $tmpdir
-cat $inpfile | ./parser >$tmpfile
+cat $inpfile | ${dir}parser >$tmpfile
 cat $tmac $tmpfile | preconv | groff -Tps -e >$outfile
 
 rm -rf $tmpdir
