@@ -75,6 +75,55 @@ BEGIN {
 	next
 }
 
+/^~$/ {
+	while (getline > 0) {
+		if (/^organization:$/) {
+			print ".cover@org" >covpage
+			while (getline > 0) {
+				if (/^[~]?$/)
+					break
+
+				print inline($0) >covpage
+			}
+		}
+		else if (/^admission:$/) {
+			getline position
+			getline name
+			args = "\""inline(position) "\" \"" inline(name) "\""
+			print ".cover@adm " args >covpage
+		}
+		else if (/^title:$/) {
+			print ".cover@title" >covpage
+			while (getline > 0) {
+				if (/^[~]?$/)
+					break
+
+				print inline($0) >covpage
+			}
+		}
+		else if (/^supervisor:$/) {
+			getline position
+			getline name
+			args = "\""inline(position) "\" \"" inline(name) "\""
+			print ".cover@super " args >covpage
+		}
+		else if (/^author:$/) {
+			getline position
+			getline name
+			args = "\""inline(position) "\" \"" inline(name) "\""
+			print ".cover@author " args >covpage
+		}
+
+		if (/^~$/) {
+			break
+		}
+	}
+
+	skipline = NR + 1
+	print ".cover@end" >covpage
+	next
+}
+
 /^-$/ {
 	output = output ".font@monospace\n"
 
@@ -95,6 +144,9 @@ BEGIN {
 	output = output ".list@start\n"
 
 	while (getline > 0) {
+		if (/^--$/)
+			break
+
 		if (match($0, /^\t{3}\S+\ /)) {
 			output = output ".list-item@L3 "
 			num = substr($0, 4, RLENGTH - 4)
@@ -107,8 +159,6 @@ BEGIN {
 			output = output ".list-item@L1 "
 			num = substr($0, 2, RLENGTH - 2)
 		}
-		else if (/^--$/)
-			break
 		else {
 			output = output inline($0) "\n"
 			continue
@@ -134,12 +184,13 @@ BEGIN {
 
 /^===$/ {
 	output = output ".bp\n"
-	getline
+	skipline = NR + 1
 	next
 }
 
 /^$/ {
-	output = output ".sp\n"
+	if (skipline != NR)
+		output = output ".sp\n"
 	next
 }
 

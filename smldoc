@@ -16,13 +16,13 @@ fi
 
 dir=$(dirname $0)
 tmpdir=$(mktemp -d /tmp/smldoc.XXX)
-coverpage=$(mktemp ${tmpdir}/${inpfile##*/}.cover.XXX)
+cover=$(mktemp ${tmpdir}/${inpfile##*/}.cover.XXX)
 tocfile=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
 document=$(mktemp ${tmpdir}/${inpfile##*/}.doc.XXX)
 
 mkdir -p $tmpdir
 touch $outfile
-cat $inpfile | awk -v covpage=$coverpage -f ${dir}/parser >$document
+cat $inpfile | awk -v covpage=$cover -f ${dir}/parser >$document
 echo ".content" >$tocfile
 
 while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
@@ -36,7 +36,8 @@ while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
 		tocfile=
 	fi
 
-	cat $tmac $tocfile $document | preconv | groff -Tps -e 1>$outfile 2>>$tocfile2
+	cat $tmac $cover $tocfile $document | preconv |
+		groff -Tps -e 1>$outfile 2>>$tocfile2
 
 	if [ -n "$(grep -v '^\.content' $tocfile2)" ]; then
 		err="$(grep -v '^\.content' $tocfile2)"
