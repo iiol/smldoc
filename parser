@@ -3,19 +3,54 @@
 function inline(s) {
 	gsub(/\\/, "\\\\", s)
 	gsub(/\"/, "\\[u0022]", s)
+
 	gsub(/<</, "\\(Fo", s)
 	gsub(/>>/, "\\(Fc", s)
+
 	gsub(/\s---/, "\\h'4p'\\(em", s)
 	gsub(/--/, "\\(em", s)
-	gsub(/''''/, "\\f(BI", s)
-	gsub(/'''/, "\\fI", s)
-	gsub(/''/, "\\fB", s)
-	gsub(/\^\^/, "\\fP", s)
+
+	for (i = 1; i <= length(s); ++i) {
+		pref = substr(s, 1, i - 1)
+		subs = substr(s, i)
+
+		if (subs ~ /^''''/) {
+			if (fam == "\\fR")
+				fam = "\\f(BI"
+			else
+				fam = "\\fR"
+
+			sub(/^''''/, fam, subs)
+		}
+		else if (subs ~ /^'''/) {
+			if (fam == "\\fR")
+				fam = "\\fI"
+			else
+				fam = "\\fR"
+
+			sub(/^'''/, fam, subs)
+		}
+		else if (subs ~ /^''/) {
+			if (fam == "\\fR")
+				fam = "\\fB"
+			else
+				fam = "\\fR"
+
+			sub(/^''/, fam, subs)
+		}
+
+		s = pref subs
+	}
+
 	s = gensub(/\s*\$\$([^$]+)\$\$\s*/, "\n.EQ\n\\1\n.EN\n", "g", s)
 	sub(/^\n/, "", s)
 	sub(/\n$/, "", s)
 
 	return s
+}
+
+BEGIN {
+	fam = "\\fR"
 }
 
 /^-\ .+/ {
