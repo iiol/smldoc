@@ -1,0 +1,84 @@
+#!/usr/bin/awk -f
+
+function setdelim(s) {
+	if (substr(s, length(s)) == ".")
+		delim = "\\(em"
+	else
+		delim = ".\\(em"
+}
+
+BEGIN {
+	print ".bp"
+	print ".heading@S1 \"Список использованной литературы\""
+	print ".tm .content@L1 \"Список использованной литературы\" \\n%"
+	print ".sp"
+	print ".list@start"
+}
+
+/^author: .+$/ {
+	arg = gensub(/^author: (.+)$/, "\\1", "g")
+
+	if (fields["author"] == "")
+		fields["author"] = arg
+
+	if (fields["authors"])
+		arg = " " arg
+
+	fields["authors"] = fields["authors"] arg
+
+	next
+}
+
+/^[^:].+: .+$/ {
+	field = gensub(/^([^:].+): .+$/, "\\1", "g")
+	arg = gensub(/^[^:].+: (.+)$/, "\\1", "g")
+
+	fields[field] = arg
+
+	next
+}
+
+/^$/ {
+	print ".list-item@L1 " ++num "."
+	printf fields["author"] " " fields["title"]
+
+	if (fields["type"])
+		printf " [" fields["type"] "]"
+
+	printf " / " fields["authors"]
+
+	setdelim(fields["authors"])
+
+	if (fields["about"])
+		printf delim " " fields["about"]
+
+	setdelim(fields["about"])
+
+	if (fields["city"]) {
+		printf delim " " fields["city"]
+		printf " : " fields["publisher"]
+		printf " , " fields["date"]
+	}
+
+	setdelim(fields["date"])
+
+	if (fields["pages"])
+		printf delim " " fields["pages"] " с."
+
+	if (fields["maintitle"]) {
+		printf " // " fields["maintitle"] ":"
+		printf " URL: " fields["url"]
+		printf " (дата обращения: " fields["date"] ")"
+	}
+
+	printf "\n"
+
+	for (i in fields)
+		delete fields[i]
+
+	next
+}
+
+END {
+	print ".list@end"
+}

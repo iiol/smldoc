@@ -51,76 +51,101 @@ function inline(s) {
 
 BEGIN {
 	fam = "\\fR"
+	split(mods, specpages, "\n")
 }
 
-/^-\ .+/ {
-	sub(/^-\ /, "")
+/^- .+/ {
+	sub(/^- /, "")
 	output = output ".heading@S1 \"" inline($0) "\"\n"
 	output = output ".tm .content@L1 \"" inline($0) "\" \\n%\n"
 	next
 }
 
-/^--\ .+/ {
-	sub(/^--\ /, "")
+/^-- .+/ {
+	sub(/^-- /, "")
 	output = output ".heading@S2 \"" inline($0) "\"\n"
 	output = output ".tm .content@L2 \"" inline($0) "\" \\n%\n"
-	print output >"/tmp/123"
 	next
 }
 
-/^---\ .+/ {
-	sub(/^---\ /, "")
+/^--- .+/ {
+	sub(/^--- /, "")
 	output = output ".heading@S3 \"" inline($0) "\"\n"
 	output = output ".tm .content@L3 \"" inline($0) "\" \\n%\n"
 	next
 }
 
-/^~$/ {
-	while (getline > 0) {
-		if (/^organization:$/) {
-			print ".cover@org" >covpage
+/^~{1,2} \S+$/ {
+	pagetype = gensub(/^~~? (\S+)$/, "\\1", "g")
+
+	first = 1
+
+	if (/^~~/)
+		first = 0
+
+	for (id in specpages) {
+		if (specpages[id] == pagetype) {
+			spec = ""
 			while (getline > 0) {
-				if (/^[~]?$/)
+				if (/^~~?/)
 					break
 
-				print inline($0) >covpage
+				spec = spec $0 "\n"
 			}
-		}
-		else if (/^admission:$/) {
-			getline position
-			getline name
-			args = "\""inline(position) "\" \"" inline(name) "\""
-			print ".cover@adm " args >covpage
-		}
-		else if (/^title:$/) {
-			print ".cover@title" >covpage
-			while (getline > 0) {
-				if (/^[~]?$/)
-					break
 
-				print inline($0) >covpage
+			cmd = "echo \"" spec "\" | " modsdir "/" specpages[id]
+
+			while ((cmd | getline) > 0) {
+				if (first)
+					print $0 >firstpages
+				else
+					output = output $0 "\n"
 			}
-		}
-		else if (/^supervisor:$/) {
-			getline position
-			getline name
-			args = "\""inline(position) "\" \"" inline(name) "\""
-			print ".cover@super " args >covpage
-		}
-		else if (/^author:$/) {
-			getline position
-			getline name
-			args = "\""inline(position) "\" \"" inline(name) "\""
-			print ".cover@author " args >covpage
-		}
 
-		if (/^~$/) {
-			break
+			next
 		}
 	}
 
+	while (getline > 0) {
+		request = "." pagetype "@" gensub(/([^:]+)::?$/, "\\1", "g")
+
+		if (/^\S+::$/) {
+			args = ""
+
+			while (getline > 0) {
+				if (/^~{0,2}$/)
+					break
+
+				args = args " \"" inline($0) "\""
+			}
+
+			if (first)
+				print request args >firstpages
+			else
+				print request args
+		}
+		else if (/^\S+:$/) {
+			if (first)
+				print request >firstpages
+			else
+				print request
+
+			while (getline > 0) {
+				if (/^~{0,2}$/)
+					break
+
+				if (first)
+					print inline($0) >firstpages
+				else
+					print inline($0)
+			}
+		}
+
+		if (/^~{1,2}$/)
+			break
+	}
+
 	skipline = NR + 1
-	print ".cover@end" >covpage
 	next
 }
 
@@ -147,15 +172,15 @@ BEGIN {
 		if (/^--$/)
 			break
 
-		if (match($0, /^\t{3}\S+\ /)) {
+		if (match($0, /^\t{3}\S+ /)) {
 			output = output ".list-item@L3 "
 			num = substr($0, 4, RLENGTH - 4)
 		}
-		else if (match($0, /^\t{2}\S+\ /)) {
+		else if (match($0, /^\t{2}\S+ /)) {
 			output = output ".list-item@L2 "
 			num = substr($0, 3, RLENGTH - 3)
 		}
-		else if (match($0, /^\t\S+\ /)) {
+		else if (match($0, /^\t\S+ /)) {
 			output = output ".list-item@L1 "
 			num = substr($0, 2, RLENGTH - 2)
 		}
@@ -164,7 +189,7 @@ BEGIN {
 			continue
 		}
 
-		sub(/^\t{1,3}\S+\ /, "")
+		sub(/^\t{1,3}\S+ /, "")
 
 		if (num == "*")
 			num = "\\(bu"
@@ -210,7 +235,7 @@ BEGIN {
 	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++picnum
 
-	output = output gensub(/^!P(\S+)\ (.+)\ \S+$/, ".image 1 \\1 " picnum " \"\\2\"\n", "g")
+	output = output gensub(/^!P(\S+) (.+) \S+$/, ".image 1 \\1 " picnum " \"\\2\"\n", "g")
 	next
 }
 
@@ -224,12 +249,12 @@ BEGIN {
 	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++tblnum
 
-	output = output gensub(/^!T(\S+)\ (.+)\ \S+$/, ".table 1 \\1 " tblnum " \"\\2\"\n", "g")
+	output = output gensub(/^!T(\S+) (.+) \S+$/, ".table 1 \\1 " tblnum " \"\\2\"\n", "g")
 	next
 }
 
-/^\$\$\ \S+/ {
-	sub(/^\$\$\ /, "")
+/^\$\$ \S+/ {
+	sub(/^\$\$ /, "")
 	vars[$0] = ++exprnum
 
 	output = output ".ce 1000\n.mk es\n.EQ\n"

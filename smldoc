@@ -1,33 +1,48 @@
 #!/bin/sh
 
-while getopts "i:o:t:c" opt; do
+usage() {
+	echo "Usage: smldoc [-c] [-h] [-t tmac.tmac] [-m modsdir] -T(ps|pdf) input.sm [output.(ps|pdf)]"
+}
+
+dir=$(dirname $0)
+tmac=${dir}/tmac/default.tmac
+modsdir=${dir}/mods/
+
+while getopts "T:t:m:ch" opt; do
 	case $opt in
-	i) inpfile=$OPTARG;;
-	o) outfile=$OPTARG;;
+	T)
+		if [ "ps" = "$OPTARG" -o "pdf" = "$OPTARG" ]; then
+			typefile=$OPTARG
+		fi
+	;;
 	t) tmac=$OPTARG;;
+	m) modsdir=$OPTARG;;
 	c) content=1;;
+	h) usage; exit 0;;
 	esac
 done
 
-if [ -z "$inpfile" -o -z "$outfile" -o -z "$tmac" ]; then
-	echo "Usage: smldoc [-c] <-t TMAC_FILE> <-i INPUT_FILE> <-o OUTPUT_FILE>"
+shift $(($OPTIND-1))
+
+if [ -z "$1" -o -z "$typefile" ]; then
+	usage
 	exit 1
 fi
 
-dir=$(dirname $0)
 tmpdir=$(mktemp -d /tmp/smldoc.XXX)
-cover=$(mktemp ${tmpdir}/${inpfile##*/}.cover.XXX)
+firstpages=$(mktemp ${tmpdir}/${inpfile##*/}.firstpages.XXX)
 tocfile=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
 document=$(mktemp ${tmpdir}/${inpfile##*/}.doc.XXX)
+tmpout=$(mktemp ${tmpdir}/${inpfile##*/}.tmpout.XXX)
+inpfile=$1
 
-mkdir -p $tmpdir
-touch $outfile
-cat $inpfile | awk -v covpage=$cover -f ${dir}/parser >$document
+cat $inpfile | awk -v firstpages=$firstpages -v modsdir="$modsdir" \
+	-v mods="$(ls $modsdir)" -f ${dir}/parser >$document
 echo ".content" >$tocfile
 
-while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
+while [ "$(md5sum $tmpout | cut -d ' ' -f 1)" != "$md5" ]; do
 	tocfile2=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
-	md5=$(md5sum $outfile | cut -d ' ' -f 1)
+	md5=$(md5sum $tmpout | cut -d ' ' -f 1)
 
 	echo ".bp" >>$tocfile
 	echo ".content" >$tocfile2
@@ -36,8 +51,8 @@ while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
 		tocfile=
 	fi
 
-	cat $tmac $cover $tocfile $document | preconv |
-		groff -Tps -e 1>$outfile 2>>$tocfile2
+	cat $tmac $firstpages $tocfile $document | preconv |
+		groff -Tps -e 1>$tmpout 2>>$tocfile2
 
 	if [ -n "$(grep -v '^\.content' $tocfile2)" ]; then
 		err="$(grep -v '^\.content' $tocfile2)"
@@ -49,8 +64,18 @@ while [ "$(md5sum $outfile | cut -d ' ' -f 1)" != "$md5" ]; do
 	tocfile=$tocfile2
 done
 
-if [ -n "$err" ]; then
-	echo "$err" 1>&2
+echo -n "$err" 1>&2
+
+outfile=$2
+
+if [ -z "$outfile" ]; then
+	outfile="/dev/stdout"
+fi
+
+if [ "ps" = "$typefile" ]; then
+	cat $tmpout >$outfile
+else
+	cat $tmpout | ps2pdf - - >$outfile
 fi
 
 rm -rf $tmpdir

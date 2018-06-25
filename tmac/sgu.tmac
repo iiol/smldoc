@@ -1,0 +1,240 @@
+.nr PS 14p	\"Размер шрифта
+.nr VS 21p	\"Ширина строки
+.
+.nr PW 21c	\"Ширина страницы
+.nr PL 29c	\"Длина страницы
+.nr UF 2c	\"Отступ сверху
+.nr RF 1c	\"Отступ справа
+.nr DF 2c	\"Отступ снизу
+.nr LF 3c	\"Отступ слева
+.
+.nr NS 1	\"Начало нумерации страниц
+.nr UN 0	\"Верхняя нумерация
+.nr DN 1	\"Нижняя нумерация
+.
+.ds YE 2018
+.
+.
+.
+.ps \n(PSu
+.vs \n(VSu
+.
+.po \n(LFu
+.ll \n(PWu-(\n(LFu+\n(RFu)
+.pl \n(PLu
+.
+.
+.de cover@numeration
+.nr NS \\$1
+..
+.
+.de cover@year
+.ds YE \\$1
+..
+.
+.de cover@organization
+.ce 1000
+..
+.
+.de cover@admission
+.sp |7c
+.rj 1000
+Допустить к защите
+\\$1
+\\l'8m' \\$2
+\\(Fo\\l'2m'\\(Fc\\l'6m' \\*(YE года
+..
+.
+.de cover@title
+.sp |12c
+.ce 1000
+..
+.
+.de cover@supervisor
+.sp |16c
+.ce 0
+Научный руководитель,
+.br
+\\$1
+.sp -1
+.rj 2
+\\l'8m' \\$2
+\\(Fo\\l'2m'\\(Fc\\l'6m' \\*(YE года
+..
+.
+.de cover@author
+.sp |20c
+.ce 0
+Исполнитель,
+.br
+\\$1
+.sp -1
+.rj 2
+\\l'8m' \\$2
+\\(Fo\\l'2m'\\(Fc\\l'6m' \\*(YE года
+..
+.
+.de cover@end
+.sp |\n(.pu-\n(DFu-1v
+.ce 1
+Сыктывкар, \\*(YE г.
+..
+.
+.
+.de content
+.ce 1
+\fB\s+5Содержание\s-5\fP
+.sp 1
+..
+.
+.de content@L1
+.in 0
+\\$1\\
+\\h'3p'\\
+\\l'(\\n(.lu-(\\w'\\$1\\$2'u+6p)).'\\
+\\h'3p'\\
+\\$2
+..
+.
+.de content@L2
+.in 0
+\\h'20p'\\
+\\$1\\
+\\h'3p'\\
+\\l'(\\n(.lu-(\\w'\\$1\\$2'u+26p)).'\\
+\\h'3p'\\
+\\$2
+..
+.
+.de content@L3
+.in 0
+\\h'40p'\\
+\\$1\\
+\\h'3p'\\
+\\l'(\\n(.lu-(\\w'\\$1\\$2'u+46p)).'\\
+\\h'3p'\\
+\\$2
+..
+.
+.
+.de heading@S1
+.br
+\\s+5\\fB\\$1\\fP\\s-5
+.br
+..
+.
+.de heading@S2
+.br
+\\s+3\\fB\\$1\\fP\\s-3
+.br
+..
+.
+.de heading@S3
+.br
+\\s+1\\fB\\$1\\fP\\s-1
+.br
+..
+.
+.
+.de header
+.nr PS \\n(.s
+.nr VS \\n(.v
+.ds FT \\n[.fam]
+.ps 12
+.vs 14
+.fam T
+.
+.if \\n%>=\\n(NS&\\n(UN>0 \{\
+'	sp |1c
+.	tl ''- % -''\}
+.
+.fam \\*(FT
+.ps \\n(PS
+.vs \\n(VSu
+.
+'sp |\\n(UFu
+..
+.
+.de footer
+.nr PS \\n(.s
+.nr VS \\n(.v
+.ds FT \\n[.fam]
+.ps 12
+.vs 14
+.fam T
+.
+.if \\n%>=\\n(NS&\\n(DN>0 \{\
+'	sp |\n(.pu-1c
+.	tl ''- % -''\}
+.
+.fam \\*(FT
+.ps \\n(PS
+.vs \\n(VSu
+.
+'bp
+..
+.
+.wh 0 header
+.wh -\n(DFu footer
+.
+.
+.de paragraph
+.ti +1.25c
+..
+.
+.
+.de list@start
+.in |2.5c
+..
+.
+.de list@end
+.in 0
+..
+.
+.de list-item@L1
+.br
+\\h'-(\\w'\\$1'u+18p)'\\$1\\h'18p'\\
+..
+.
+.
+.de list-item@L2
+.br
+\\h'-(\\w'\\$1'u+18p)'\\$1\\h'18p'\\
+..
+.
+.
+.de list-item@L3
+.br
+\\h'-(\\w'\\$1'u+18p)'\\$1\\h'18p'\\
+..
+.
+.
+.de image
+.ie \\$1=0 .PSPIC \\$2
+.ie \\$1=1 \{\
+.	PSPIC \\$2
+.	ce 100
+Рисунок \\$3. \\$4
+.	ce 0\}
+..
+.
+.de table
+.ie \\$1=0 .PSPIC \\$2
+.ie \\$1=1 \{\
+.	rj 100
+Таблица \\$3. \\$4
+.	rj 0\}
+.	PSPIC \\$2
+..
+.
+.
+.de font@monospace
+.fam C
+.nf
+..
+.
+.
+.de font@multispace
+.fam T
+.fi
+..

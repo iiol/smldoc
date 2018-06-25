@@ -1,10 +1,9 @@
-.PHONY: test example clean
+.PHONY: test clean
 
 all: test
 
 test:
-	./smldoc -c -t tmac/tmac.tmac -i test/test.sm -o test/test.ps
-	ps2pdf test/test.ps test/test.pdf
+	./smldoc -c -Tpdf -t tmac/sgu.tmac test/test.sm test/test.pdf
 
 clean:
 	rm -f test/test.ps test/test.pdf
