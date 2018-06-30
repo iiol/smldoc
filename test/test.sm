@@ -1,7 +1,12 @@
-~ cover
-numeration::
+~ numeration
+start::
 2
 
+position::
+down
+~
+
+~ cover
 year::
 1223
 
@@ -32,9 +37,6 @@ end:
 ~
 
 ~~ cover
-numeration::
-2
-
 year::
 1223
 

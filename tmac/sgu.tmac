@@ -10,7 +10,7 @@
 .
 .nr NS 1	\"Начало нумерации страниц
 .nr UN 0	\"Верхняя нумерация
-.nr DN 1	\"Нижняя нумерация
+.nr DN 0	\"Нижняя нумерация
 .
 .ds YE 2018
 .
@@ -24,8 +24,20 @@
 .pl \n(PLu
 .
 .
-.de cover@numeration
+.de numeration@start
 .nr NS \\$1
+..
+.
+.de numeration@position
+.ie "\\$1"up" \{\
+.	nr UN 1
+.	nr DN 0\}
+.ie "\\$1"down" \{
+.	nr UN 0
+.	nr DN 1\}
+.ie "\\$1"off" \{
+.	nr UN 0
+.	nr DN 0\}
 ..
 .
 .de cover@year
