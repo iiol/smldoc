@@ -155,22 +155,6 @@ BEGIN {
 	next
 }
 
-/^-$/ {
-	output = output ".font@monospace\n"
-
-	while (getline > 0) {
-		if (/^-$/)
-			break
-
-		gsub(/\\/, "\\\\")
-		output = output inline($0) "\n"
-	}
-
-	output = output ".font@multispace\n"
-
-	next
-}
-
 /^--$/ {
 	output = output ".list@start\n"
 
