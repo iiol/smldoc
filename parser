@@ -255,9 +255,9 @@ BEGIN {
 
 /^\$\$ \S+/ {
 	sub(/^\$\$ /, "")
-	vars[$0] = ++exprnum
+	vars[$0] = ++eqnum
 
-	output = output ".ce 1000\n.mk es\n.EQ\n"
+	output = output ".eq@start " eqnum "\n.EQ\n"
 
 	while (getline > 0) {
 		if (/^\$\$$/)
@@ -266,12 +266,7 @@ BEGIN {
 		output = output $0 "\n"
 	}
 
-	output = output ".EN\n.mk en\n"
-	output = output ".sp -((\\n[en]u-\\n[es]u)/2u+0.5v)\n"
-	output = output ".in 0\n.ta \\n(.luR\n"
-	output = output "\t(" exprnum ")\n"
-	output = output ".sp |\\n[en]u\n"
-	output = output ".ce 0\n"
+	output = output ".EN\n.eq@end\n"
 
 	next
 }

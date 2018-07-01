@@ -93,6 +93,19 @@
 ..
 .
 .
+.de eq@start
+.ds eq-num "\\$1
+.ce 1000
+.mk eq
+..
+.de eq@end
+.mk en
+.sp -((\\n(enu-\\n(equ)/2u+0.5v)
+.rj 1
+(\\*[eq-num])
+..
+.
+.
 .de content
 .ce 1
 \fB\s+5Содержание\s-5\fP
