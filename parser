@@ -1,14 +1,7 @@
 #!/usr/bin/awk -f
 
 function inline(s) {
-	gsub(/\\/, "\\\\", s)
-	gsub(/\"/, "\\[u0022]", s)
-
-	gsub(/<</, "\\(Fo", s)
-	gsub(/>>/, "\\(Fc", s)
-
-	gsub(/\s---/, "\\h'4p'\\(em", s)
-	gsub(/--/, "\\(em", s)
+	gsub(/\\/, "\\[char92]", s)
 
 	for (i = 1; i <= length(s); ++i) {
 		pref = substr(s, 1, i - 1)
@@ -41,6 +34,16 @@ function inline(s) {
 
 		s = pref subs
 	}
+
+	gsub(/"/, "\\[char34]", s)
+	gsub(/'/, "\\[char39]", s)
+	gsub(/\./, "\\[char46]", s)
+
+	gsub(/<</, "\\(Fo", s)
+	gsub(/>>/, "\\(Fc", s)
+
+	gsub(/\s---/, "\\h'4p'\\(em", s)
+	gsub(/--/, "\\(em", s)
 
 	s = gensub(/\s*\$\$([^$]+)\$\$\s*/, "\n.EQ\n\\1\n.EN\n", "g", s)
 	sub(/^\n/, "", s)
@@ -85,15 +88,16 @@ BEGIN {
 
 	for (id in specpages) {
 		if (specpages[id] == pagetype) {
-			spec = ""
 			while (getline > 0) {
 				if (/^~~?/)
 					break
 
-				spec = spec $0 "\n"
+				print $0 >tmpfile
 			}
 
-			cmd = "echo \"" spec "\" | " modsdir "/" specpages[id]
+			close(tmpfile)
+
+			cmd = "cat " tmpfile " | " modsdir "/" specpages[id]
 
 			while ((cmd | getline) > 0) {
 				if (first)
@@ -101,6 +105,8 @@ BEGIN {
 				else
 					output = output $0 "\n"
 			}
+
+			close(cmd)
 
 			next
 		}

@@ -7,38 +7,7 @@ function setdelim(s) {
 		delim = ".\\(em"
 }
 
-BEGIN {
-	print ".bp"
-	print ".heading@S1 \"Список использованной литературы\""
-	print ".tm .content@L1 \"Список использованной литературы\" \\n%"
-	print ".sp"
-	print ".list@start"
-}
-
-/^author: .+$/ {
-	arg = gensub(/^author: (.+)$/, "\\1", "g")
-
-	if (fields["author"] == "")
-		fields["author"] = arg
-
-	if (fields["authors"])
-		arg = " " arg
-
-	fields["authors"] = fields["authors"] arg
-
-	next
-}
-
-/^[^:].+: .+$/ {
-	field = gensub(/^([^:].+): .+$/, "\\1", "g")
-	arg = gensub(/^[^:].+: (.+)$/, "\\1", "g")
-
-	fields[field] = arg
-
-	next
-}
-
-/^$/ {
+function printref() {
 	print ".list-item@L1 " ++num "."
 	printf fields["author"] " " fields["title"]
 
@@ -75,10 +44,46 @@ BEGIN {
 
 	for (i in fields)
 		delete fields[i]
+}
+
+BEGIN {
+	print ".bp"
+	print ".heading@S1 \"Список использованной литературы\""
+	print ".tm .content@L1 \"Список использованной литературы\" \\n%"
+	print ".sp"
+	print ".list@start"
+}
+
+/^author: .+$/ {
+	arg = gensub(/^author: (.+)$/, "\\1", "g")
+
+	if (fields["author"] == "")
+		fields["author"] = arg
+
+	if (fields["authors"])
+		arg = " " arg
+
+	fields["authors"] = fields["authors"] arg
+
+	next
+}
+
+/^[^:].+: .+$/ {
+	field = gensub(/^([^:].+): .+$/, "\\1", "g")
+	arg = gensub(/^[^:].+: (.+)$/, "\\1", "g")
+
+	fields[field] = arg
+
+	next
+}
+
+/^$/ {
+	printref()
 
 	next
 }
 
 END {
+	printref()
 	print ".list@end"
 }

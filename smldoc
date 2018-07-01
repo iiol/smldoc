@@ -29,15 +29,16 @@ if [ -z "$1" -o -z "$typefile" ]; then
 	exit 1
 fi
 
+inpfile=$1
 tmpdir=$(mktemp -d /tmp/smldoc.XXX)
 firstpages=$(mktemp ${tmpdir}/${inpfile##*/}.firstpages.XXX)
 tocfile=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
 document=$(mktemp ${tmpdir}/${inpfile##*/}.doc.XXX)
 tmpout=$(mktemp ${tmpdir}/${inpfile##*/}.tmpout.XXX)
-inpfile=$1
+tmpfile=$(mktemp ${tmpdir}/${inpfile##*/}.tmpfile.XXX)
 
 cat $inpfile | awk -v firstpages=$firstpages -v modsdir="$modsdir" \
-	-v mods="$(ls $modsdir)" -f ${dir}/parser >$document
+	-v mods="$(ls $modsdir)" -v tmpfile="$tmpfile" -f ${dir}/parser >$document
 echo ".content" >$tocfile
 
 while [ "$(md5sum $tmpout | cut -d ' ' -f 1)" != "$md5" ]; do

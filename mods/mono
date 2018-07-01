@@ -1,0 +1,23 @@
+#!/usr/bin/awk -f
+
+function inline(s) {
+	gsub(/\\/, "\\\\", s)
+	gsub(/'/, "\\[char39]", s)
+	gsub(/\./, "\\[char46]", s)
+
+	return s
+}
+
+BEGIN {
+	print ".fam C"
+	print ".nf"
+}
+
+{
+	print inline($0)
+}
+
+END {
+	print ".fam T"
+	print ".fi"
+}

@@ -91,14 +91,14 @@ end:
 ---
 строки
 
--
+~~ mono
 int main(void)
 {
     printf("Hello World\n");
 
     return 0;
 }
--
+~~
 
 	Рецепт салата:
 
