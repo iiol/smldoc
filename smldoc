@@ -4,19 +4,21 @@ usage() {
 	echo "Usage: smldoc [-c] [-h] [-t tmac.tmac] [-m modsdir] -T(ps|pdf) input.sm [output.(ps|pdf)]"
 }
 
-dir=$(dirname $0)
-tmac=${dir}/tmac/default.tmac
-modsdir=${dir}/mods/
+dir="$(dirname $0)"
+tmac="${dir}/tmac/default.tmac"
+modsdir="${dir}/mods/"
+
+content=0
 
 while getopts "T:t:m:ch" opt; do
 	case $opt in
 	T)
 		if [ "ps" = "$OPTARG" -o "pdf" = "$OPTARG" ]; then
-			typefile=$OPTARG
+			typefile="$OPTARG"
 		fi
 	;;
-	t) tmac=$OPTARG;;
-	m) modsdir=$OPTARG;;
+	t) tmac="$OPTARG";;
+	m) modsdir="$OPTARG";;
 	c) content=1;;
 	h) usage; exit 0;;
 	esac
@@ -29,37 +31,44 @@ if [ -z "$1" -o -z "$typefile" ]; then
 	exit 1
 fi
 
-inpfile=$1
-tmpdir=$(mktemp -d /tmp/smldoc.XXX)
-firstpages=$(mktemp ${tmpdir}/${inpfile##*/}.firstpages.XXX)
-tocfile=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
-document=$(mktemp ${tmpdir}/${inpfile##*/}.doc.XXX)
-tmpout=$(mktemp ${tmpdir}/${inpfile##*/}.tmpout.XXX)
-tmpfile=$(mktemp ${tmpdir}/${inpfile##*/}.tmpfile.XXX)
+inpfile="$1"
+outfile="$2"
 
-cat $inpfile | awk -v firstpages=$firstpages -v modsdir="$modsdir" \
-	-v mods="$(ls $modsdir)" -v tmpfile="$tmpfile" -f ${dir}/parser >$document
+if [ -z "$outfile" ]; then
+	outfile="/dev/stdout"
+fi
+
+tmpdir=$(mktemp -d /tmp/smldoc.XXX)
+firstpages=$(mktemp ${tmpdir}/firstpages.XXX)
+tocfile=$(mktemp ${tmpdir}/toc.XXX)
+document=$(mktemp ${tmpdir}/doc.XXX)
+tmpout=$(mktemp ${tmpdir}/tmpout.XXX)
+tmpfile=$(mktemp ${tmpdir}/tmpfile.XXX)
+
+cat "$inpfile" | awk -v firstpages=$firstpages -v modsdir="$modsdir" \
+	-v tmpfile="$tmpfile" -f "${dir}/parser" >$document
+
 echo ".content" >$tocfile
 
 while [ "$(md5sum $tmpout | cut -d ' ' -f 1)" != "$md5" ]; do
-	tocfile2=$(mktemp ${tmpdir}/${inpfile##*/}.toc.XXXXXX)
+	tocfile2=$(mktemp ${tmpdir}/toc.XXX)
 	md5=$(md5sum $tmpout | cut -d ' ' -f 1)
 
 	echo ".bp" >>$tocfile
 	echo ".content" >$tocfile2
 
-	if [ ${content:=0} -eq 0 ]; then
+	if [ $content -eq 0 ]; then
 		tocfile=
 	fi
 
-	cat $tmac $firstpages $tocfile $document | preconv |
+	cat "$tmac" $firstpages $tocfile $document | preconv |
 		groff -Tps -e 1>$tmpout 2>>$tocfile2
 
 	if [ -n "$(grep -v '^\.content' $tocfile2)" ]; then
 		err="$(grep -v '^\.content' $tocfile2)"
-		toc="$(cat $tocfile2)"
+		toc="$(grep    '^\.content' $tocfile2)"
 
-		echo "$toc" | grep '^\.content' >$tocfile2
+		echo "$toc" >$tocfile2
 	fi
 
 	tocfile=$tocfile2
@@ -67,16 +76,10 @@ done
 
 echo -n "$err" 1>&2
 
-outfile=$2
-
-if [ -z "$outfile" ]; then
-	outfile="/dev/stdout"
-fi
-
-if [ "ps" = "$typefile" ]; then
-	cat $tmpout >$outfile
+if [ "$typefile" = "ps" ]; then
+	cat $tmpout >"$outfile"
 else
-	cat $tmpout | ps2pdf - - >$outfile
+	cat $tmpout | ps2pdf - - >"$outfile"
 fi
 
 rm -rf $tmpdir

@@ -53,8 +53,16 @@ function inline(s) {
 }
 
 BEGIN {
+	i = 0
 	fam = "\\fR"
-	split(mods, specpages, "\n")
+	cmd = "ls " modsdir
+
+	while ((cmd | getline) > 0) {
+		specpages[i] = $0
+		i++
+	}
+
+	close(cmd)
 }
 
 /^- .+/ {
@@ -225,6 +233,7 @@ BEGIN {
 	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++picnum
 
+	# FIXME
 	output = output gensub(/^!P(\S+) (.+) \S+$/, ".image 1 \\1 " picnum " \"\\2\"\n", "g")
 	next
 }
@@ -239,6 +248,7 @@ BEGIN {
 	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++tblnum
 
+	# FIXME
 	output = output gensub(/^!T(\S+) (.+) \S+$/, ".table 1 \\1 " tblnum " \"\\2\"\n", "g")
 	next
 }
