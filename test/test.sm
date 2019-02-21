@@ -132,9 +132,9 @@ $$ eqn
 {5 sup 345 cdot 643 cdot ln 4} over 345
 $$
 
-!Ptest/pic.eps Пример изображения img
+!Ptest/pic.eps Пример <<изображения>> img
 
-!Ttest/tbl.eps Пример таблицы tbl
+!Ttest/tbl.eps Пример "таблицы" tbl
 
 	Рисунок без подписи
 

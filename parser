@@ -233,8 +233,9 @@ BEGIN {
 	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++picnum
 
-	# FIXME
-	output = output gensub(/^!P(\S+) (.+) \S+$/, ".image 1 \\1 " picnum " \"\\2\"\n", "g")
+	output = output gensub(/^!P(\S+) .+/, ".image 1 \\1 " picnum " ", "g")
+	output = output "\"" inline(gensub(/^!P\S+ (.+) \S+$/, "\\1", "g")) "\"\n"
+
 	next
 }
 
@@ -248,8 +249,9 @@ BEGIN {
 	var = substr($0, RSTART, RLENGTH)
 	vars[var] = ++tblnum
 
-	# FIXME
-	output = output gensub(/^!T(\S+) (.+) \S+$/, ".table 1 \\1 " tblnum " \"\\2\"\n", "g")
+	output = output gensub(/^!T(\S+) .+/, ".table 1 \\1 " tblnum " ", "g")
+	output = output "\"" inline(gensub(/^!T\S+ (.+) \S+$/, "\\1", "g")) "\"\n"
+
 	next
 }
 
